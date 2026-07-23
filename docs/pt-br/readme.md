@@ -1,4 +1,8 @@
-# makephp
+# makephp — ambiente Docker para PHP orquestrado por Makefile
+
+<p align="center">
+  <img src="../../promo-assets/makephp-php-docker-environment-1280x640.png" alt="makephp: ambiente Docker para PHP orquestrado por Makefile, com Nginx, PHP-FPM 8.3/8.4/8.5, MariaDB, Redis, RabbitMQ e Let's Encrypt" width="100%">
+</p>
 
 Ambiente Docker completo para aplicações PHP, orquestrado por Makefile. Um único repositório provê a infraestrutura compartilhada — Nginx, PHP-FPM, MariaDB, Redis, RabbitMQ, TimescaleDB, MongoDB e Certbot — enquanto cada aplicação vive no seu próprio repositório e é plugada por convenção de variáveis no `.env`. Serve tanto o desenvolvimento local (macOS/Linux) quanto um host de produção single-node com HTTPS automatizado.
 

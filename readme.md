@@ -1,4 +1,8 @@
-# makephp
+# makephp — Makefile-driven Docker environment for PHP
+
+<p align="center">
+  <img src="./promo-assets/makephp-php-docker-environment-1280x640.png" alt="makephp: Makefile-driven Docker environment for PHP with Nginx, PHP-FPM 8.3/8.4/8.5, MariaDB, Redis, RabbitMQ and Let's Encrypt" width="100%">
+</p>
 
 [![ci](https://github.com/giacomeli/makephp/actions/workflows/ci.yml/badge.svg)](https://github.com/giacomeli/makephp/actions/workflows/ci.yml) [![Docker Hub](https://img.shields.io/docker/v/giacomeli/makephp/8.3-prod?label=docker%20hub)](https://hub.docker.com/r/giacomeli/makephp) [![license](https://img.shields.io/github/license/giacomeli/makephp)](./LICENSE)
 
