@@ -1,0 +1,11 @@
+[Unit]
+Description=Timer de renovacao automatica de certificados Let's Encrypt
+
+[Timer]
+OnCalendar=*-*-* 03:14:00
+OnCalendar=*-*-* 15:14:00
+RandomizedDelaySec=3600
+Persistent=true
+
+[Install]
+WantedBy=timers.target

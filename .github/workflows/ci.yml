@@ -1,0 +1,77 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  validate:
+    name: compose e nginx
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Prepara ambiente de CI
+        run: |
+          cp .env.example .env
+          sed -i 's#^LOCAL_DIR=.*#LOCAL_DIR=/tmp/projects#' .env
+          mkdir -p /tmp/projects logs/php logs/nginx
+          printf 'services: {}\n' > compose.apps.yml
+          docker network create phpdocker-network
+
+      - name: Valida docker compose config
+        run: docker compose config -q
+
+      - name: Gera vhosts de todos os modos e valida com nginx -t
+        run: |
+          make nginx-conf template=php name=ci-php domain=ci-php.test root=/var/www/ci/public
+          make nginx-conf template=proxy name=ci-proxy domain=ci-proxy.test port=8000
+          make nginx-html-conf name=ci-html domain=ci-html.test root=/var/www/ci
+          make wordpress-conf name=ci-wp domain=ci-wp.test root=/var/www/wp || true
+          docker run --rm \
+            --add-host php-fpm:127.0.0.1 \
+            -v "$PWD/nginx/nginx.conf:/etc/nginx/nginx.conf:ro" \
+            -v "$PWD/nginx/conf.d:/etc/nginx/conf.d:ro" \
+            -v "$PWD/nginx/includes:/etc/nginx/includes:ro" \
+            nginx:1.29-alpine nginx -t
+          if grep -R '__[A-Z_]*__' nginx/conf.d/; then
+            echo "Placeholders nao resolvidos"; exit 1
+          fi
+
+  lint:
+    name: hadolint e shellcheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: hadolint php/Dockerfile
+        uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: php/Dockerfile
+          ignore: DL3008,DL3003
+
+      - name: hadolint mariadb/Dockerfile
+        uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: mariadb/Dockerfile
+          ignore: DL3008
+
+      - name: hadolint certbot/Dockerfile
+        uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: certbot/Dockerfile
+
+      - name: shellcheck
+        run: |
+          sudo apt-get update -q && sudo apt-get install -y -q shellcheck
+          shellcheck scripts/*.sh examples/demo-app/container_config/entrypoint.sh
+
+  build-prod:
+    name: build imagem prod
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build do target prod (sem push)
+        run: docker build --target prod ./php

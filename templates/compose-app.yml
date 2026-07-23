@@ -1,0 +1,23 @@
+  # app:__APP__:begin
+  __APP__:
+    build:
+      context: ${__APP_VAR___PROJECT_PATH}
+      # dockerfile e sempre resolvido relativo ao context
+      dockerfile: ${APP_CONTAINER_CFG_DIR}/Dockerfile
+      args:
+        BASE_IMAGE: ${PHP_CONTAINER_NAME}:${PHP_IMAGE_TAG}
+    container_name: ${__APP_VAR___CONTAINER_NAME}
+    working_dir: ${__APP_VAR___DOCKER_PATH}
+    volumes:
+      - ${__APP_VAR___PROJECT_PATH}:${__APP_VAR___DOCKER_PATH}
+    networks:
+      phpdocker-network:
+        aliases:
+          - ${__APP_VAR___ALIASES}
+    depends_on:
+      - mariadb
+      - redis
+    environment:
+      APP_ENV: ${ENVIRONMENT}
+    restart: unless-stopped
+  # app:__APP__:end
