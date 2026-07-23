@@ -21,8 +21,8 @@ The bare forms of the suffixed targets (`make shell demo-app`) are stubs that ex
 | Command | What it does |
 | --- | --- |
 | `make init` | Creates `.env` (from the example), the `phpdocker-network` network, `logs/` and the `compose.apps.yml` stub — idempotent |
-| `make build` | **Dev** PHP base image (`--target final`); honors `PHP_ENABLE_SWOOLE` and `PHP_ENABLE_XDEBUG`; `NO_CACHE=1` skips cache |
-| `make build-prod` | Slim **prod** PHP image (`--target prod`) |
+| `make build` | **Dev** PHP base image (`--target final`); the PHP version is derived from `PHP_IMAGE_TAG` (override with `PHP_VERSION=8.x`); honors `PHP_ENABLE_SWOOLE` and `PHP_ENABLE_XDEBUG`; `NO_CACHE=1` skips cache |
+| `make build-prod` | Slim **prod** PHP image (`--target prod`), tagged `<name>:<version>-prod` |
 | `make rebuild-php` | `docker compose build --no-cache php-fpm` |
 
 ## Lifecycle
@@ -74,7 +74,8 @@ Requires `CERTBOT_EMAIL` in `.env`; `CERTBOT_STAGING=1` uses the Let's Encrypt s
 | Command | What it does |
 | --- | --- |
 | `make smoke` | Full smoke test: brings the stack up, registers/builds the `demo-app` and validates the proxy, php and html modes via curl + `nginx -t` |
-| `make push-php` | Publishes `giacomeli/makephp:8.3-dev` and `:8.3-prod` multi-arch (amd64+arm64) to DockerHub, with dated tags — requires `docker login` |
+| `make push-php [PHP_VERSION=8.x]` | Publishes `giacomeli/makephp:<version>-dev` and `:<version>-prod` multi-arch (amd64+arm64) to DockerHub, with dated tags — requires `docker login` |
+| `make push-php-all` | Publishes every version in `PHP_VERSIONS` (8.3 8.4 8.5), pruning the buildx cache between versions |
 
 ## Local DNS
 

@@ -1,5 +1,9 @@
+# PHP version for both the builder chain and the prod runtime.
+# Selected via PHP_IMAGE_TAG in .env (make derives and forwards it).
+ARG PHP_VERSION=8.3
+
 # Stage 1: Base system
-FROM php:8.3-fpm AS system-base
+FROM php:${PHP_VERSION}-fpm AS system-base
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     zsh curl wget unzip git gnupg \
@@ -61,7 +65,7 @@ FROM python-env AS php-extensions
 
 # Configure and install extensions in a single layer to optimize caching
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp && \
-    docker-php-ext-install -j$(nproc) \
+    docker-php-ext-install -j"$(nproc)" \
     # Essentials
     bcmath \
     ctype \
@@ -102,13 +106,19 @@ RUN pecl install mongodb redis amqp apcu imagick && \
 # Stage: conditional Swoole
 FROM php-pecl AS php-swoole
 
+# bash with pipefail so failures inside pipes abort the build (DL4006)
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+
 ARG PHP_ENABLE_SWOOLE=false
 RUN if [ "$PHP_ENABLE_SWOOLE" = "true" ]; then \
         echo "Installing Swoole..."; \
         pecl install swoole && \
         docker-php-ext-enable swoole; \
-        php -m | grep -q swoole && echo "Swoole installed and enabled." \
-            || { echo "ERROR: Swoole not found after installation."; exit 1; }; \
+        if php -m | grep -q swoole; then \
+            echo "Swoole installed and enabled."; \
+        else \
+            echo "ERROR: Swoole not found after installation."; exit 1; \
+        fi; \
     else \
         echo "Swoole disabled (PHP_ENABLE_SWOOLE=false). Skipping."; \
     fi
@@ -158,7 +168,7 @@ WORKDIR /var/www
 # copies the compiled extensions from the builder stage — no
 # toolchain, node, python or terminal tools.
 # ============================================================
-FROM php:8.3-fpm AS prod
+FROM php:${PHP_VERSION}-fpm AS prod
 
 # Runtime counterparts of the -dev packages in php-libs.
 # Package names from Debian 13 (trixie), the current php:8.3-fpm base.

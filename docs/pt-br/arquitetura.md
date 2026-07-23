@@ -75,7 +75,7 @@ Toda a infraestrutura fica em loopback; apenas o nginx publica em todas as inter
 
 ## Imagem PHP multi-stage (dev e prod)
 
-O `php/Dockerfile` encadeia estágios para maximizar o cache de camadas e oferece dois targets finais: `final` (dev, completa) e `prod` (runtime enxuto que copia as extensões compiladas do builder — sem gcc, node, python ou ferramentas de terminal). Ambas publicadas em `giacomeli/makephp` (`8.3-dev` / `8.3-prod`, amd64+arm64):
+O `php/Dockerfile` encadeia estágios para maximizar o cache de camadas e oferece dois targets finais: `final` (dev, completa) e `prod` (runtime enxuto que copia as extensões compiladas do builder — sem gcc, node, python ou ferramentas de terminal). A versão do PHP é build arg (`PHP_VERSION`, derivada do `PHP_IMAGE_TAG` do `.env`), e 8.3/8.4/8.5 são publicadas em `giacomeli/makephp` (`8.x-dev` / `8.x-prod`, amd64+arm64):
 
 ```mermaid
 %%{init: {'theme':'base','themeVariables':{'primaryColor':'#E3F2FD','primaryTextColor':'#0D47A1','primaryBorderColor':'#1976D2','lineColor':'#546E7A'}}}%%

@@ -1,12 +1,15 @@
 services:
   php-fpm:
     restart: unless-stopped
-    image: ${PHP_CONTAINER_NAME}:${PHP_IMAGE_TAG}
+    # PHP_IMAGE overrides the local image (e.g. giacomeli/makephp:8.4-dev
+    # straight from DockerHub, no local build needed)
+    image: ${PHP_IMAGE:-${PHP_CONTAINER_NAME}:${PHP_IMAGE_TAG}}
     build:
       context: ./php
       dockerfile: Dockerfile
       target: final
       args:
+        PHP_VERSION: ${PHP_VERSION:-8.3}
         PHP_ENABLE_SWOOLE: ${PHP_ENABLE_SWOOLE}
         PHP_ENABLE_XDEBUG: ${PHP_ENABLE_XDEBUG}
     container_name: ${PHP_CONTAINER_NAME}

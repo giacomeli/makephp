@@ -21,8 +21,8 @@ As formas nuas dos alvos de sufixo (`make shell demo-app`) são stubs que explic
 | Comando | O que faz |
 | --- | --- |
 | `make init` | Cria `.env` (do example), rede `phpdocker-network`, `logs/`, `compose.apps.yml` stub — idempotente |
-| `make build` | Imagem PHP base **dev** (`--target final`); respeita `PHP_ENABLE_SWOOLE` e `PHP_ENABLE_XDEBUG`; `NO_CACHE=1` ignora cache |
-| `make build-prod` | Imagem PHP **prod** enxuta (`--target prod`) |
+| `make build` | Imagem PHP base **dev** (`--target final`); a versão do PHP é derivada do `PHP_IMAGE_TAG` (override com `PHP_VERSION=8.x`); respeita `PHP_ENABLE_SWOOLE` e `PHP_ENABLE_XDEBUG`; `NO_CACHE=1` ignora cache |
+| `make build-prod` | Imagem PHP **prod** enxuta (`--target prod`), tag `<nome>:<versao>-prod` |
 | `make rebuild-php` | `docker compose build --no-cache php-fpm` |
 
 ## Ciclo de vida
@@ -74,7 +74,8 @@ Requer `CERTBOT_EMAIL` no `.env`; `CERTBOT_STAGING=1` usa o ambiente de teste do
 | Comando | O que faz |
 | --- | --- |
 | `make smoke` | Teste de fumaça completo: sobe a stack, registra/builda o `demo-app` e valida os modos proxy, php e html via curl + `nginx -t` |
-| `make push-php` | Publica `giacomeli/makephp:8.3-dev` e `:8.3-prod` multi-arch (amd64+arm64) no DockerHub, com tags datadas — requer `docker login` |
+| `make push-php [PHP_VERSION=8.x]` | Publica `giacomeli/makephp:<versao>-dev` e `:<versao>-prod` multi-arch (amd64+arm64) no DockerHub, com tags datadas — requer `docker login` |
+| `make push-php-all` | Publica todas as versões de `PHP_VERSIONS` (8.3 8.4 8.5), limpando o cache do buildx entre versões |
 
 ## DNS local
 

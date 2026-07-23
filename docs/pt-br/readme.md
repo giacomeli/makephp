@@ -45,12 +45,32 @@ O MongoDB não sobe por padrão — `make up mongodb` quando precisar. Validaç�
 
 ## Imagens no DockerHub
 
+PHP 8.3, 8.4 e 8.5, cada uma em dois sabores (todas multi-arch amd64+arm64):
+
 | Imagem | Conteúdo | Uso |
 | --- | --- | --- |
-| `giacomeli/makephp:8.3-dev` | Extensões completas + ferramentas de desenvolvimento | Base para containers de app em dev |
-| `giacomeli/makephp:8.3-prod` | Mesmas extensões, runtime enxuto | Base para imagens de produção |
+| `giacomeli/makephp:8.3-dev` / `8.4-dev` / `8.5-dev` | Extensões completas + ferramentas de desenvolvimento | Base para containers de app em dev |
+| `giacomeli/makephp:8.3-prod` / `8.4-prod` / `8.5-prod` | Mesmas extensões, runtime enxuto | Base para imagens de produção |
 
-Tags datadas (`8.3-dev-YYYYMMDD`) permitem pinar uma versão exata. Publicação: `make push-php` (multi-arch via buildx).
+Tags datadas (`8.x-dev-YYYYMMDD`) permitem pinar uma versão exata. Publicação: `make push-php [PHP_VERSION=8.x]` ou `make push-php-all`.
+
+### Trocando a versão do PHP
+
+O `PHP_IMAGE_TAG` no `.env` comanda tudo — o `make build` deriva a versão dele:
+
+```dotenv
+PHP_IMAGE_TAG=8.4-dev        # 8.3-dev | 8.4-dev | 8.5-dev
+```
+
+```bash
+make build && docker compose up -d php-fpm
+```
+
+Ou pule o build local e rode o php-fpm compartilhado direto do DockerHub:
+
+```dotenv
+PHP_IMAGE=giacomeli/makephp:8.4-dev
+```
 
 ## Registrando uma aplicação
 

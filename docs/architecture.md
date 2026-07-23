@@ -75,7 +75,7 @@ All infrastructure binds to loopback; only nginx publishes on all interfaces. `m
 
 ## Multi-stage PHP image (dev and prod)
 
-`php/Dockerfile` chains stages to maximize layer caching and exposes two final targets: `final` (dev, full-featured) and `prod` (slim runtime that copies the compiled extensions from the builder — no gcc, node, python or terminal tools). Both are published to `giacomeli/makephp` (`8.3-dev` / `8.3-prod`, amd64+arm64):
+`php/Dockerfile` chains stages to maximize layer caching and exposes two final targets: `final` (dev, full-featured) and `prod` (slim runtime that copies the compiled extensions from the builder — no gcc, node, python or terminal tools). The PHP version is a build arg (`PHP_VERSION`, derived from `PHP_IMAGE_TAG` in `.env`), and 8.3/8.4/8.5 are published to `giacomeli/makephp` (`8.x-dev` / `8.x-prod`, amd64+arm64):
 
 ```mermaid
 %%{init: {'theme':'base','themeVariables':{'primaryColor':'#E3F2FD','primaryTextColor':'#0D47A1','primaryBorderColor':'#1976D2','lineColor':'#546E7A'}}}%%

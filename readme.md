@@ -70,18 +70,38 @@ make smoke
 
 ## DockerHub images
 
+PHP 8.3, 8.4 and 8.5, each in two flavors (all multi-arch amd64+arm64):
+
 | Image | Contents | Use |
 | --- | --- | --- |
-| `giacomeli/makephp:8.3-dev` | All extensions + development tooling | Base for app containers in dev |
-| `giacomeli/makephp:8.3-prod` | Same extensions, slim runtime | Base for production images |
+| `giacomeli/makephp:8.3-dev` / `8.4-dev` / `8.5-dev` | All extensions + development tooling | Base for app containers in dev |
+| `giacomeli/makephp:8.3-prod` / `8.4-prod` / `8.5-prod` | Same extensions, slim runtime | Base for production images |
 
 ```dockerfile
 # An app Dockerfile (e.g. container_config/Dockerfile)
-ARG BASE_IMAGE=giacomeli/makephp:8.3-dev
+ARG BASE_IMAGE=giacomeli/makephp:8.4-dev
 FROM ${BASE_IMAGE}
 ```
 
-Dated tags (`8.3-dev-YYYYMMDD`) allow pinning an exact build. Publishing: `make push-php` (multi-arch via buildx).
+Dated tags (`8.x-dev-YYYYMMDD`) allow pinning an exact build. Publishing: `make push-php [PHP_VERSION=8.x]` or `make push-php-all`.
+
+### Switching PHP versions
+
+The `PHP_IMAGE_TAG` in `.env` drives everything — `make build` derives the PHP version from it:
+
+```dotenv
+PHP_IMAGE_TAG=8.4-dev        # 8.3-dev | 8.4-dev | 8.5-dev
+```
+
+```bash
+make build && docker compose up -d php-fpm
+```
+
+Or skip the local build entirely and run the shared php-fpm straight from DockerHub:
+
+```dotenv
+PHP_IMAGE=giacomeli/makephp:8.4-dev
+```
 
 ## Registering an application
 
