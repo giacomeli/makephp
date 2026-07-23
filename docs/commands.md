@@ -104,7 +104,7 @@ make ps                                      # status + healthchecks
 docker compose logs nginx --tail 50          # startup errors
 ```
 
-CI (`.github/workflows/ci.yml`) runs automatically: compose config, vhost rendering + `nginx -t`, hadolint, shellcheck and the prod target build.
+CI runs automatically when relevant files change: `ci.yml` (compose config, vhost rendering + `nginx -t`, hadolint, shellcheck — skipped on docs-only changes) and `ci-image.yml` (prod target build, only when `php/` changes).
 
 ---
 

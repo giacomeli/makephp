@@ -101,7 +101,7 @@ Contribuições são bem-vindas — issues, docs e PRs.
 
 1. **Converse antes em mudanças grandes**: abra uma issue descrevendo o problema ou a proposta antes de investir num PR extenso.
 1. **Prepare o ambiente**: fork, clone e `make init && make build && make up`. O projeto inteiro é Makefile + shell + Docker — nenhuma outra toolchain.
-1. **Valide antes de abrir o PR**: `make smoke` é o gate de regressão do projeto (exercita registro, geração de vhosts e os três modos do nginx de ponta a ponta). O CI também roda `docker compose config`, render de vhosts + `nginx -t`, `hadolint`, `shellcheck` e o build da imagem prod em todo PR.
+1. **Valide antes de abrir o PR**: `make smoke` é o gate de regressão do projeto (exercita registro, geração de vhosts e os três modos do nginx de ponta a ponta). O CI roda `docker compose config`, render de vhosts + `nginx -t`, `hadolint` e `shellcheck` em todo PR que toca os arquivos relevantes — mudanças só de docs pulam o pipeline, e o build da imagem prod (`ci-image`) roda apenas quando `php/` muda.
 1. **Convenções**: [Conventional Commits](https://www.conventionalcommits.org) (`feat:`, `fix:`, `refactor:`, `docs:`, `chore:`); código, comentários e mensagens de ferramentas em inglês; sem emojis em código ou docs. A documentação em inglês vive em `docs/` — se mudar comportamento, atualize-a (o espelho `docs/pt-br/` é mantido em sincronia pelo mantenedor, mas PRs atualizando os dois são bem-vindos).
 1. **Escopo**: a infraestrutura vive aqui; lógica específica de aplicação pertence aos repositórios dos apps. Templates nginx novos, integrações de serviços e alvos de Makefile devem seguir os padrões existentes (sentinela de geração, `nginx-reload-safe`, helpers com sufixo-hífen).
 

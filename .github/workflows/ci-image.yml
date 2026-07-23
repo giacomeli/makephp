@@ -1,0 +1,24 @@
+name: ci-image
+
+# Validates the PHP image build (no push) — runs ONLY when the image sources
+# change. Publishing to DockerHub stays manual via the publish workflow.
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'php/**'
+      - '.github/workflows/ci-image.yml'
+  pull_request:
+    paths:
+      - 'php/**'
+      - '.github/workflows/ci-image.yml'
+
+jobs:
+  build-prod:
+    name: build prod image
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build the prod target (no push)
+        run: docker build --target prod ./php

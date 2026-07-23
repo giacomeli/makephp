@@ -1,9 +1,23 @@
 name: ci
 
+# Docs-only changes (markdown, docs/, promo assets) skip the whole pipeline —
+# nothing they touch affects compose, nginx or the images.
 on:
   push:
     branches: [main]
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - 'promo-assets/**'
+      - 'LICENSE'
+      - '.gitignore'
   pull_request:
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - 'promo-assets/**'
+      - 'LICENSE'
+      - '.gitignore'
 
 jobs:
   validate:
@@ -67,11 +81,4 @@ jobs:
           sudo apt-get update -q && sudo apt-get install -y -q shellcheck
           shellcheck scripts/*.sh examples/demo-app/container_config/entrypoint.sh
 
-  build-prod:
-    name: build prod image
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Build the prod target (no push)
-        run: docker build --target prod ./php
+# The prod image build lives in ci-image.yml and only runs when php/ changes.

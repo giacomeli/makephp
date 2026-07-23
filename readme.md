@@ -161,7 +161,7 @@ Contributions are welcome — issues, docs and PRs.
 
 1. **Discuss first for larger changes**: open an issue describing the problem or proposal before investing in a big PR.
 1. **Set up your environment**: fork, clone, then `make init && make build && make up`. The whole project is Makefile + shell + Docker — no other toolchain.
-1. **Validate before opening the PR**: `make smoke` is the project's regression gate (it exercises registration, vhost generation and the three nginx modes end to end). CI also runs `docker compose config`, vhost rendering + `nginx -t`, `hadolint`, `shellcheck` and the prod image build on every PR.
+1. **Validate before opening the PR**: `make smoke` is the project's regression gate (it exercises registration, vhost generation and the three nginx modes end to end). CI runs `docker compose config`, vhost rendering + `nginx -t`, `hadolint` and `shellcheck` on every PR that touches the relevant files — docs-only changes skip the pipeline, and the prod image build (`ci-image`) runs only when `php/` changes.
 1. **Conventions**: [Conventional Commits](https://www.conventionalcommits.org) (`feat:`, `fix:`, `refactor:`, `docs:`, `chore:`); code, comments and tool messages in English; no emojis in code or docs. English docs live in `docs/` — if you change behavior, update them (the `docs/pt-br/` mirror is kept in sync by the maintainer, but PRs updating both are appreciated).
 1. **Scope**: infrastructure lives here; application-specific logic belongs in app repositories. New nginx templates, service integrations and Makefile targets should follow the existing patterns (generation sentinel, `nginx-reload-safe`, dash-suffix helpers).
 

@@ -104,7 +104,7 @@ make ps                                      # estado + healthchecks
 docker compose logs nginx --tail 50          # erros de subida
 ```
 
-O CI (`.github/workflows/ci.yml`) roda automaticamente: compose config, geração de vhosts + `nginx -t`, hadolint, shellcheck e build do target prod.
+O CI roda automaticamente quando os arquivos relevantes mudam: `ci.yml` (compose config, geração de vhosts + `nginx -t`, hadolint, shellcheck — pulado em mudanças só de docs) e `ci-image.yml` (build do target prod, apenas quando `php/` muda).
 
 ---
 
