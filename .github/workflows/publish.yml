@@ -65,7 +65,11 @@ jobs:
   merge:
     name: merge manifests ${{ matrix.version }}
     needs: build
+    # always(): one version failing must not block the merge of the versions
+    # whose builds succeeded — each merge verifies its own per-arch tags.
+    if: ${{ always() }}
     strategy:
+      fail-fast: false
       matrix:
         version: ${{ fromJSON(inputs.php_version == 'all' && '["8.3","8.4","8.5"]' || format('["{0}"]', inputs.php_version)) }}
     runs-on: ubuntu-latest
@@ -77,6 +81,12 @@ jobs:
 
       - name: Create multi-arch manifests (versioned + dated)
         run: |
+          for suffix in amd64 arm64; do
+            if ! docker buildx imagetools inspect "$IMAGE:${{ matrix.version }}-dev-$suffix" >/dev/null 2>&1; then
+              echo "Per-arch tag ${{ matrix.version }}-dev-$suffix missing (build failed) — nothing to merge."
+              exit 1
+            fi
+          done
           DATE=$(date +%Y%m%d)
           for flavor in dev prod; do
             docker buildx imagetools create \

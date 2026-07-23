@@ -74,7 +74,6 @@ RUN docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp && \
     iconv \
     intl \
     mbstring \
-    opcache \
     pcntl \
     sockets \
     xml \
@@ -96,6 +95,14 @@ RUN docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp && \
     gmp \
     soap \
     xsl
+
+# OPcache: shared module up to PHP 8.4; built into core on PHP 8.5+ (building
+# it as shared fails there with an empty modules dir) — install conditionally.
+RUN if php -m | grep -qi opcache; then \
+        echo "OPcache already built into this PHP version. Skipping."; \
+    else \
+        docker-php-ext-install opcache; \
+    fi
 
 # Stage: PECL extensions
 FROM php-extensions AS php-pecl
