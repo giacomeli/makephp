@@ -10,7 +10,7 @@ This repository serves a single-node production host (Debian + Docker) in additi
 | --- | --- | --- |
 | `ENVIRONMENT` | `staging` | `production` |
 | `NGINX_PORT_HTTP` | `8099` (avoids clashes with other local servers) | `80` |
-| App base image | `giacomeli/makephp:8.3-dev` (or local build) | `giacomeli/makephp:8.3-prod` |
+| App base image |  `giacomeli/makephp:8.x-dev` (or local build) | `giacomeli/makephp:8.x-prod` |
 | DNS | `/etc/hosts` via `make hosts-add-<app>` | Real DNS pointing at the host |
 | TLS | None (or Let's Encrypt staging, `CERTBOT_STAGING=1`) | `make cert-gen` + `make enable-ssl` per site |
 | Cert renewal | Manual (`make cert-renew`) | systemd timer 2x/day |
@@ -27,7 +27,7 @@ The same `docker-compose.yml` serves both environments — what changes is `.env
 git clone https://github.com/giacomeli/makephp ~/Projects/makephp && cd ~/Projects/makephp
 make init                 # .env, network, logs/, compose.apps.yml
 # edit .env: strong passwords, LOCAL_DIR, ENVIRONMENT=production, NGINX_PORT_HTTP=80
-make build                # or docker pull giacomeli/makephp:8.3-prod for apps
+make build                # or docker pull giacomeli/makephp:8.x-prod for apps
 make up
 make ps                   # every healthcheck should turn healthy
 ```
@@ -98,7 +98,7 @@ Guaranteed by default (no action needed):
 Mandatory per-host actions:
 
 1. **Replace every `changeme` password in `.env`** before the first `make up`.
-1. Use the `8.3-prod` image as the app base (each app's `container_config/Dockerfile` accepts `BASE_IMAGE`).
+1. Use the `8.x-prod` image as the app base (each app's `container_config/Dockerfile` accepts `BASE_IMAGE`).
 1. Backups: the `mariadb_data`, `postgres_timescale_data`, `mongodb_data` and `certbot_certs` volumes — this repository ships no backup routine; provision one externally.
 1. MongoDB: if the data volume predates the credentials in compose, create the root user manually (Mongo's localhost exception allows it: `docker compose exec mongodb mongosh admin --eval 'db.createUser({user: "...", pwd: "...", roles: ["root"]})'`).
 1. Review apps publishing their own ports in `compose.apps.yml` (`docker compose ps` to audit).

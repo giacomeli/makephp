@@ -24,7 +24,7 @@ flowchart LR
 
     subgraph NET["Rede externa: phpdocker-network"]
         NGINX["nginx 1.29-alpine"]:::edge
-        FPM["php-fpm (PHP 8.3 + PECL)"]:::app
+        FPM["php-fpm (PHP 8.x + PECL)"]:::app
         APPS["Containers de apps<br>(modo proxy, ex.: Reverb)"]:::app
         MDB[("MariaDB")]:::infra
         PG[("TimescaleDB pg15")]:::infra
@@ -95,7 +95,7 @@ flowchart LR
     F --> G["php-pecl<br>mongodb, redis, amqp, apcu, imagick"]:::stage
     G --> H["php-swoole<br>condicional: PHP_ENABLE_SWOOLE"]:::cond
     H --> I["final (DEV)<br>Xdebug condicional, Composer,<br>Oh My Zsh, dotfiles"]:::stage
-    H -- "COPY extensoes compiladas" --> J["prod<br>php:8.3-fpm limpo + libs de runtime<br>+ php-prod.ini + Composer"]:::prod
+    H -- "COPY extensoes compiladas" --> J["prod<br>php:8.x-fpm limpo + libs de runtime<br>+ php-prod.ini + Composer"]:::prod
 ```
 
 Pontos de atenção:

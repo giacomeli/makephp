@@ -6,7 +6,7 @@ Documentação: **English** ([readme principal](../../readme.md) e [`docs/`](../
 
 ## Recursos
 
-- Imagem PHP 8.3-FPM em dois sabores: **dev** (extensões + zsh/Oh My Zsh, tmux, node, python, supervisor, Xdebug opcional) e **prod** (runtime enxuto com as mesmas extensões, sem toolchain) — publicadas em [hub.docker.com/u/giacomeli](https://hub.docker.com/u/giacomeli) com suporte a amd64 e arm64.
+- Imagens PHP-FPM para **8.3, 8.4 e 8.5**, cada uma em dois sabores: **dev** (extensões + zsh/Oh My Zsh, tmux, node, python, supervisor, Xdebug opcional) e **prod** (runtime enxuto com as mesmas extensões, sem toolchain) — publicadas em [hub.docker.com/u/giacomeli](https://hub.docker.com/u/giacomeli) com suporte a amd64 e arm64; troque de versão alterando o `PHP_IMAGE_TAG` no `.env`.
 - Registro de aplicações sem tocar no compose: `make register-app` gera o serviço a partir do `.env`.
 - Geração de vhosts Nginx a partir de templates: PHP/Laravel, proxy reverso (websockets/Reverb), estáticos e WordPress, com variantes HTTPS — validados com `nginx -t` antes de recarregar.
 - Certificados Let's Encrypt via Certbot em container (webroot) com renovação automática por systemd timer.
@@ -52,7 +52,7 @@ PHP 8.3, 8.4 e 8.5, cada uma em dois sabores (todas multi-arch amd64+arm64):
 | `giacomeli/makephp:8.3-dev` / `8.4-dev` / `8.5-dev` | Extensões completas + ferramentas de desenvolvimento | Base para containers de app em dev |
 | `giacomeli/makephp:8.3-prod` / `8.4-prod` / `8.5-prod` | Mesmas extensões, runtime enxuto | Base para imagens de produção |
 
-Tags datadas (`8.x-dev-YYYYMMDD`) permitem pinar uma versão exata. Publicação: `make push-php [PHP_VERSION=8.x]` ou `make push-php-all`.
+Tags datadas (`8.x-dev-YYYYMMDD`) permitem pinar uma versão exata. Publicação: a GitHub Action `publish` (runners nativos amd64+arm64, disparo manual) ou localmente via `make push-php [PHP_VERSION=8.x]` / `make push-php-all`.
 
 ### Trocando a versão do PHP
 
@@ -89,7 +89,17 @@ Guia completo em [apps.md](./apps.md). Alvos por app usam **sufixo com hífen** 
 
 ## Produção
 
-O mesmo repositório opera um host de produção: `.env` com `NGINX_PORT_HTTP=80` e senhas reais, certificados via `make cert-gen` + `make enable-ssl`, renovação automática com os units de `systemd/`, e imagem `8.3-prod` como base dos apps. Checklist de hardening e notas de migração em [producao.md](./producao.md).
+O mesmo repositório opera um host de produção: `.env` com `NGINX_PORT_HTTP=80` e senhas reais, certificados via `make cert-gen` + `make enable-ssl`, renovação automática com os units de `systemd/`, e imagem `8.x-prod` como base dos apps. Checklist de hardening e notas de migração em [producao.md](./producao.md).
+
+## Como contribuir
+
+Contribuições são bem-vindas — issues, docs e PRs.
+
+1. **Converse antes em mudanças grandes**: abra uma issue descrevendo o problema ou a proposta antes de investir num PR extenso.
+1. **Prepare o ambiente**: fork, clone e `make init && make build && make up`. O projeto inteiro é Makefile + shell + Docker — nenhuma outra toolchain.
+1. **Valide antes de abrir o PR**: `make smoke` é o gate de regressão do projeto (exercita registro, geração de vhosts e os três modos do nginx de ponta a ponta). O CI também roda `docker compose config`, render de vhosts + `nginx -t`, `hadolint`, `shellcheck` e o build da imagem prod em todo PR.
+1. **Convenções**: [Conventional Commits](https://www.conventionalcommits.org) (`feat:`, `fix:`, `refactor:`, `docs:`, `chore:`); código, comentários e mensagens de ferramentas em inglês; sem emojis em código ou docs. A documentação em inglês vive em `docs/` — se mudar comportamento, atualize-a (o espelho `docs/pt-br/` é mantido em sincronia pelo mantenedor, mas PRs atualizando os dois são bem-vindos).
+1. **Escopo**: a infraestrutura vive aqui; lógica específica de aplicação pertence aos repositórios dos apps. Templates nginx novos, integrações de serviços e alvos de Makefile devem seguir os padrões existentes (sentinela de geração, `nginx-reload-safe`, helpers com sufixo-hífen).
 
 ## Licença
 

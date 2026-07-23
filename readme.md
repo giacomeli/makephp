@@ -1,12 +1,14 @@
 # makephp
 
+[![ci](https://github.com/giacomeli/makephp/actions/workflows/ci.yml/badge.svg)](https://github.com/giacomeli/makephp/actions/workflows/ci.yml) [![Docker Hub](https://img.shields.io/docker/v/giacomeli/makephp/8.3-prod?label=docker%20hub)](https://hub.docker.com/r/giacomeli/makephp) [![license](https://img.shields.io/github/license/giacomeli/makephp)](./LICENSE)
+
 A complete, Makefile-driven Docker environment for PHP applications. A single repository provides the shared infrastructure — Nginx, PHP-FPM, MariaDB, Redis, RabbitMQ, TimescaleDB, MongoDB and Certbot — while each application lives in its own repository and plugs in through a `.env` variable convention. It serves both local development (macOS/Linux) and a single-node production host with automated HTTPS.
 
 Documentation: **English** (below and in [`docs/`](./docs/)) | **Português** ([`docs/pt-br/`](./docs/pt-br/readme.md))
 
 ## Features
 
-- PHP 8.3-FPM image in two flavors: **dev** (all extensions + zsh/Oh My Zsh, tmux, node, python, supervisor, optional Xdebug) and **prod** (slim runtime with the same extensions, no toolchain) — published at [hub.docker.com/u/giacomeli](https://hub.docker.com/u/giacomeli) for amd64 and arm64.
+- PHP-FPM images for **8.3, 8.4 and 8.5**, each in two flavors: **dev** (all extensions + zsh/Oh My Zsh, tmux, node, python, supervisor, optional Xdebug) and **prod** (slim runtime with the same extensions, no toolchain) — published at [hub.docker.com/u/giacomeli](https://hub.docker.com/u/giacomeli) for amd64 and arm64; switch versions by changing `PHP_IMAGE_TAG` in `.env`.
 - App registration without touching compose: `make register-app` generates the service from `.env`.
 - Nginx vhost generation from templates: PHP/Laravel, reverse proxy (websockets/Reverb), static and WordPress, with HTTPS variants — validated with `nginx -t` before every reload.
 - Let's Encrypt certificates via containerized Certbot (webroot) with automatic renewal through a systemd timer.
@@ -83,7 +85,7 @@ ARG BASE_IMAGE=giacomeli/makephp:8.4-dev
 FROM ${BASE_IMAGE}
 ```
 
-Dated tags (`8.x-dev-YYYYMMDD`) allow pinning an exact build. Publishing: `make push-php [PHP_VERSION=8.x]` or `make push-php-all`.
+Dated tags (`8.x-dev-YYYYMMDD`) allow pinning an exact build. Publishing: the `publish` GitHub Action (native amd64+arm64 runners, manual dispatch) or locally via `make push-php [PHP_VERSION=8.x]` / `make push-php-all`.
 
 ### Switching PHP versions
 
@@ -147,7 +149,17 @@ Per-app targets use a **dash suffix** (`make shell-myapp`); `build-app`, `up`, `
 
 ## Production
 
-The same repository runs a production host: `.env` with `NGINX_PORT_HTTP=80` and real passwords, certificates via `make cert-gen` + `make enable-ssl`, automatic renewal with the `systemd/` units, and the `8.3-prod` image as the app base. Hardening checklist and migration notes in [docs/production.md](./docs/production.md).
+The same repository runs a production host: `.env` with `NGINX_PORT_HTTP=80` and real passwords, certificates via `make cert-gen` + `make enable-ssl`, automatic renewal with the `systemd/` units, and the `8.x-prod` image as the app base. Hardening checklist and migration notes in [docs/production.md](./docs/production.md).
+
+## Contributing
+
+Contributions are welcome — issues, docs and PRs.
+
+1. **Discuss first for larger changes**: open an issue describing the problem or proposal before investing in a big PR.
+1. **Set up your environment**: fork, clone, then `make init && make build && make up`. The whole project is Makefile + shell + Docker — no other toolchain.
+1. **Validate before opening the PR**: `make smoke` is the project's regression gate (it exercises registration, vhost generation and the three nginx modes end to end). CI also runs `docker compose config`, vhost rendering + `nginx -t`, `hadolint`, `shellcheck` and the prod image build on every PR.
+1. **Conventions**: [Conventional Commits](https://www.conventionalcommits.org) (`feat:`, `fix:`, `refactor:`, `docs:`, `chore:`); code, comments and tool messages in English; no emojis in code or docs. English docs live in `docs/` — if you change behavior, update them (the `docs/pt-br/` mirror is kept in sync by the maintainer, but PRs updating both are appreciated).
+1. **Scope**: infrastructure lives here; application-specific logic belongs in app repositories. New nginx templates, service integrations and Makefile targets should follow the existing patterns (generation sentinel, `nginx-reload-safe`, dash-suffix helpers).
 
 ## License
 

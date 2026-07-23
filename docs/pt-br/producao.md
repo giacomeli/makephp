@@ -10,7 +10,7 @@ Este repositório atende um host de produção single-node (Debian + Docker) al�
 | --- | --- | --- |
 | `ENVIRONMENT` | `staging` | `production` |
 | `NGINX_PORT_HTTP` | `8099` (evita conflito com outros servers locais) | `80` |
-| Imagem base dos apps | `giacomeli/makephp:8.3-dev` (ou build local) | `giacomeli/makephp:8.3-prod` |
+| Imagem base dos apps |  `giacomeli/makephp:8.x-dev` (ou build local) | `giacomeli/makephp:8.x-prod` |
 | DNS | `/etc/hosts` via `make hosts-add-<app>` | DNS real apontando para o host |
 | TLS | Sem TLS (ou staging do Let's Encrypt, `CERTBOT_STAGING=1`) | `make cert-gen` + `make enable-ssl` por site |
 | Renovação de certs | Manual (`make cert-renew`) | systemd timer 2x/dia |
@@ -27,7 +27,7 @@ O mesmo `docker-compose.yml` serve os dois ambientes — o que muda é o `.env` 
 git clone https://github.com/giacomeli/makephp ~/Projects/makephp && cd ~/Projects/makephp
 make init                 # .env, rede, logs/, compose.apps.yml
 # editar .env: senhas fortes, LOCAL_DIR, ENVIRONMENT=production, NGINX_PORT_HTTP=80
-make build                # ou docker pull giacomeli/makephp:8.3-prod para apps
+make build                # ou docker pull giacomeli/makephp:8.x-prod para apps
 make up
 make ps                   # todos os healthchecks devem ficar healthy
 ```
@@ -98,7 +98,7 @@ Garantido por default (não precisa de ação):
 Ação obrigatória por host:
 
 1. **Trocar todas as senhas `changeme` do `.env`** antes do primeiro `make up`.
-1. Usar a imagem `8.3-prod` como base dos apps (o `container_config/Dockerfile` de cada app aceita `BASE_IMAGE`).
+1. Usar a imagem `8.x-prod` como base dos apps (o `container_config/Dockerfile` de cada app aceita `BASE_IMAGE`).
 1. Backups: volumes `mariadb_data`, `postgres_timescale_data`, `mongodb_data`, `certbot_certs` — não há rotina de backup neste repositório; provisione externamente.
 1. MongoDB: se o volume de dados foi criado antes das credenciais existirem no compose, crie o usuário root manualmente (exceção de localhost do Mongo permite: `docker compose exec mongodb mongosh admin --eval 'db.createUser({user: "...", pwd: "...", roles: ["root"]})'`).
 1. Revisar apps que publicam portas próprias no `compose.apps.yml` (`docker compose ps` para auditar).
