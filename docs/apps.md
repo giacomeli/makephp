@@ -1,92 +1,92 @@
-# Arquitetura: Registro de Aplicações
+# Architecture: Application Registration
 
-As aplicações não vivem neste repositório — vivem em seus próprios repositórios e são "plugadas" na infraestrutura por dois pontos de contato: um bloco de variáveis no `.env` e uma pasta de configuração de container no repositório do app. O serviço Docker Compose do app é **gerado** por `make register-app`, num arquivo local não versionado (`compose.apps.yml`) — o `.env` é a única fonte de verdade.
+Applications do not live in this repository — they live in their own repositories and plug into the infrastructure through two contact points: a variable block in `.env` and a container configuration folder in the app repository. The app's Docker Compose service is **generated** by `make register-app` into a local, unversioned file (`compose.apps.yml`) — `.env` is the single source of truth.
 
 ---
 
-## Contrato do app
+## The app contract
 
-### 1. Bloco no `.env`
+### 1. Block in `.env`
 
 ```dotenv
-# App: MEUAPP
-MEUAPP_NGINX_MODE=php
-MEUAPP_CONTAINER_NAME=meuapp
-MEUAPP_PROJECT_PATH=/Users/voce/Projects/meuapp
-MEUAPP_DOCKER_PATH=/var/www
-MEUAPP_ALIASES="meuapp.test meuapp.docker.local"
-MEUAPP_PORT=8000
+# App: MYAPP
+MYAPP_NGINX_MODE=php
+MYAPP_CONTAINER_NAME=myapp
+MYAPP_PROJECT_PATH=/Users/you/Projects/myapp
+MYAPP_DOCKER_PATH=/var/www
+MYAPP_ALIASES="myapp.test myapp.docker.local"
+MYAPP_PORT=8000
 ```
 
-O prefixo (`MEUAPP`) é derivado do nome do app em maiúsculas com hífens virando underscore (`meu-app` vira `MEU_APP`). Variáveis opcionais:
+The prefix (`MYAPP`) derives from the app name uppercased with hyphens turned into underscores (`my-app` becomes `MY_APP`). Optional variables:
 
-| Variável | Efeito |
+| Variable | Effect |
 | --- | --- |
-| `MEUAPP_NGINX_ROOT` | Root do vhost nos modos `php`/`html` (default: ver "Root do vhost" abaixo) |
-| `MEUAPP_PHP_UPSTREAM` | Upstream FastCGI (default `php-fpm:9000`) |
+| `MYAPP_NGINX_ROOT` | Vhost root for `php`/`html` modes (default: see "Vhost root" below) |
+| `MYAPP_PHP_UPSTREAM` | FastCGI upstream (default `php-fpm:9000`) |
 
-### 2. Pasta `container_config/` no repositório do app
+### 2. `container_config/` folder in the app repository
 
-| Arquivo | Papel |
+| File | Role |
 | --- | --- |
-| `Dockerfile` | Imagem do app — tipicamente `ARG BASE_IMAGE` + `FROM ${BASE_IMAGE}` (o registro passa a imagem base local automaticamente) |
+| `Dockerfile` | The app image — typically `ARG BASE_IMAGE` + `FROM ${BASE_IMAGE}` (registration passes the local base image automatically) |
 | `entrypoint.sh` | Bootstrap (migrations, cache, permissions) |
-| `supervisord.conf` | Processos do app: server, queue workers, Horizon, Reverb |
+| `supervisord.conf` | App processes: server, queue workers, Horizon, Reverb |
 
-O nome da pasta é configurável via `APP_CONTAINER_CFG_DIR` no `.env` (default: `container_config`). Modelo funcional completo em [`examples/demo-app/container_config/`](../examples/demo-app/container_config/).
+The folder name is configurable via `APP_CONTAINER_CFG_DIR` in `.env` (default: `container_config`). A complete working template lives in [`examples/demo-app/container_config/`](../examples/demo-app/container_config/).
 
-### 3. Registro (gerado, não manual)
+### 3. Registration (generated, not manual)
 
 ```bash
-make register-app meuapp
+make register-app myapp
 ```
 
-Gera o bloco de serviço em `compose.apps.yml` a partir de `templates/compose-app.yml`, delimitado por marcadores (`# app:meuapp:begin` / `# app:meuapp:end`), e valida com `docker compose config`. O `.env` define `COMPOSE_FILE=docker-compose.yml:compose.apps.yml`, então o compose enxerga o serviço imediatamente. `make unregister-app meuapp` remove o bloco. Registrar de novo substitui (idempotente).
+Generates the service block in `compose.apps.yml` from `templates/compose-app.yml`, delimited by markers (`# app:myapp:begin` / `# app:myapp:end`), and validates with `docker compose config`. `.env` sets `COMPOSE_FILE=docker-compose.yml:compose.apps.yml`, so compose sees the service immediately. `make unregister-app myapp` removes the block. Registering again replaces it (idempotent).
 
-Para necessidades além do template (portas publicadas, envs extras, healthcheck próprio), edite o bloco gerado no `compose.apps.yml` — ele é seu, não é sobrescrito a menos que você rode `register-app` de novo.
+For anything beyond the template (published ports, extra envs, a custom healthcheck), edit the generated block in `compose.apps.yml` — it is yours and is only rewritten if you run `register-app` again.
 
 ---
 
-## Modos de integração com o Nginx
+## Nginx integration modes
 
-| `NGINX_MODE` | Comportamento | Quando usar |
+| `NGINX_MODE` | Behavior | When to use |
 | --- | --- | --- |
-| `none` | Nenhum vhost gerado | Workers, CLIs, apps sem HTTP |
-| `php` | Vhost FastCGI apontando para o php-fpm compartilhado | Laravel/PHP servido pelo php-fpm base |
-| `proxy` | Proxy reverso para `CONTAINER:PORT` (websocket-ready, DNS resolvido por requisição) | Apps com server próprio: Octane, Reverb, Node |
-| `html` | Servir arquivos estáticos do root | SPAs buildadas, sites estáticos |
+| `none` | No vhost generated | Workers, CLIs, apps without HTTP |
+| `php` | FastCGI vhost pointing at the shared php-fpm | Laravel/PHP served by the base php-fpm |
+| `proxy` | Reverse proxy to `CONTAINER:PORT` (websocket-ready, per-request DNS resolution) | Apps with their own server: Octane, Reverb, Node |
+| `html` | Static files from the root | Built SPAs, static sites |
 
-Modos WordPress têm alvo próprio (`make wordpress-conf`), fora do ciclo `build-app`.
+WordPress modes have their own target (`make wordpress-conf`), outside the `build-app` cycle.
 
-### Root do vhost (modos `php` e `html`)
+### Vhost root (`php` and `html` modes)
 
-O root precisa ser um caminho válido **dentro dos containers nginx e php-fpm**, onde `LOCAL_DIR` está montado em `DOCKER_PROJECT_PATH` (default `/var/www`). Derivação automática:
+The root must be a valid path **inside the nginx and php-fpm containers**, where `LOCAL_DIR` is mounted at `DOCKER_PROJECT_PATH` (default `/var/www`). Automatic derivation:
 
-1. `MEUAPP_NGINX_ROOT` do `.env`, se definido.
-1. Modo `php`: `DOCKER_PROJECT_PATH/<app>/public` (convenção Laravel).
-1. Modo `html`: `DOCKER_PROJECT_PATH/<app>`.
+1. `MYAPP_NGINX_ROOT` from `.env`, when set.
+1. `php` mode: `DOCKER_PROJECT_PATH/<app>/public` (Laravel convention).
+1. `html` mode: `DOCKER_PROJECT_PATH/<app>`.
 
 ---
 
-## Ciclo de vida
+## Lifecycle
 
 ```mermaid
 %%{init: {'theme':'base','themeVariables':{'primaryColor':'#E3F2FD','primaryTextColor':'#0D47A1','primaryBorderColor':'#1976D2','lineColor':'#546E7A'}}}%%
 flowchart TB
-    accTitle: Ciclo de vida de um app no makephp
-    accDescr: Registro no .env, geracao do servico compose, build com geracao de vhost validada, subida do container, alias no /etc/hosts e acesso pelo browser.
+    accTitle: App lifecycle in makephp
+    accDescr: Registration in .env, compose service generation, build with validated vhost generation, container start, /etc/hosts alias and browser access.
 
     classDef manual fill:#FFF3E0,stroke:#EF6C00
     classDef auto fill:#E3F2FD,stroke:#1976D2
     classDef result fill:#F1F8E9,stroke:#558B2F
 
-    REG["Registrar bloco APP_* no .env"]:::manual
-    CFG["Criar container_config/ no repo do app"]:::manual
-    SVC["make register-app meuapp<br>gera servico no compose.apps.yml"]:::auto
-    BUILD["make build-app meuapp<br>build + vhost + nginx -t + reload"]:::auto
-    UP["make up meuapp"]:::auto
-    HOSTS["sudo make hosts-add-meuapp"]:::auto
-    ACCESS["http://meuapp.test"]:::result
+    REG["Add the APP_* block to .env"]:::manual
+    CFG["Create container_config/ in the app repo"]:::manual
+    SVC["make register-app myapp<br>generates the service in compose.apps.yml"]:::auto
+    BUILD["make build-app myapp<br>build + vhost + nginx -t + reload"]:::auto
+    UP["make up myapp"]:::auto
+    HOSTS["sudo make hosts-add-myapp"]:::auto
+    ACCESS["http://myapp.test"]:::result
 
     REG --> SVC
     CFG --> SVC
@@ -96,24 +96,24 @@ flowchart TB
     HOSTS --> ACCESS
 ```
 
-Comandos do dia a dia, depois do app no ar:
+Day-to-day commands once the app is up:
 
 ```bash
-make shell-meuapp        # zsh dentro do container (sufixo = container name)
-make artisan-meuapp      # php artisan
-make composer-meuapp     # composer
-make queue-meuapp        # php artisan queue:work
-make reload-meuapp       # restart so deste container
-make logs                # logs de tudo
+make shell-myapp         # zsh inside the container (suffix = container name)
+make artisan-myapp       # php artisan
+make composer-myapp      # composer
+make queue-myapp         # php artisan queue:work
+make reload-myapp        # restart only this container
+make logs                # logs from everything
 ```
 
-Atenção à sintaxe: esses alvos usam **sufixo com hífen** e recebem o **nome do container**. Detalhes em [comandos.md](./comandos.md).
+Mind the syntax: these targets use a **dash suffix** and take the **container name**. Details in [commands.md](./commands.md).
 
 ---
 
-## Como os apps enxergam a infraestrutura
+## How apps see the infrastructure
 
-Dentro da rede `phpdocker-network`, os serviços respondem pelos aliases do `.env`. Num `.env` de app Laravel (com os nomes do `.env.example`):
+Inside the `phpdocker-network` network, services answer by the aliases from `.env`. In a Laravel app `.env` (with the names from `.env.example`):
 
 ```dotenv
 DB_HOST=makephp-mariadb
@@ -121,30 +121,30 @@ REDIS_HOST=makephp-redis
 RABBITMQ_HOST=makephp-rabbitmq
 ```
 
-Os valores devem casar com `MARIADB_ALIASES`, `REDIS_ALIASES`, etc. Bancos adicionais por app: copie `mariadb/docker-entrypoint-initdb.d/createdb.sql.example` para `createdb.sql` (mesma pasta, não versionado) e ajuste — roda na primeira inicialização do volume.
+The values must match `MARIADB_ALIASES`, `REDIS_ALIASES`, etc. Extra per-app databases: copy `mariadb/docker-entrypoint-initdb.d/createdb.sql.example` to `createdb.sql` (same folder, unversioned) and adjust — it runs on the first initialization of the data volume.
 
 ---
 
-## Checklist: adicionar um app novo
+## Checklist: adding a new app
 
-1. Criar `container_config/` (Dockerfile + entrypoint.sh + supervisord.conf) no repositório do app.
-1. Adicionar o bloco `<APP>_*` no `.env` deste repositório, escolhendo o `NGINX_MODE`.
-1. `make register-app <app>` — gera o serviço compose.
-1. `make build-app <app>` — build da imagem + vhost validado + reload do nginx.
-1. `make up <app>` — sobe o container.
-1. `sudo make hosts-add-<app>` — aliases locais.
-1. Validar: `make ps`, abrir `http://<alias>` (ou `make smoke` para a validação completa da stack).
+1. Create `container_config/` (Dockerfile + entrypoint.sh + supervisord.conf) in the app repository.
+1. Add the `<APP>_*` block to this repository's `.env`, picking the `NGINX_MODE`.
+1. `make register-app <app>` — generates the compose service.
+1. `make build-app <app>` — image build + validated vhost + nginx reload.
+1. `make up <app>` — starts the container.
+1. `sudo make hosts-add-<app>` — local aliases.
+1. Verify: `make ps`, open `http://<alias>` (or `make smoke` for the full stack validation).
 
 ---
 
-## Referências
+## References
 
-| Arquivo | Responsabilidade |
+| File | Responsibility |
 | --- | --- |
-| `.env` / `.env.example` | Registro dos apps (fonte de verdade) |
-| `templates/compose-app.yml` | Template do serviço gerado |
-| `compose.apps.yml` | Serviços gerados (local, não versionado) |
+| `.env` / `.env.example` | App registration (source of truth) |
+| `templates/compose-app.yml` | Generated service template |
+| `compose.apps.yml` | Generated services (local, unversioned) |
 | `makefiles/apps.mk` | `register-app`, `unregister-app` |
 | `makefiles/nginx.mk` | `build-app`, `generate-nginx-conf-%`, `nginx-reload-safe` |
-| `examples/demo-app/` | App de exemplo com o contrato completo |
-| [nginx-ssl.md](./nginx-ssl.md) | Como o vhost do app é gerado |
+| `examples/demo-app/` | Example app with the full contract |
+| [nginx-ssl.md](./nginx-ssl.md) | How the app vhost is generated |

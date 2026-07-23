@@ -1,5 +1,5 @@
 [Unit]
-Description=Timer de renovacao automatica de certificados Let's Encrypt
+Description=Timer for automatic Let's Encrypt certificate renewal
 
 [Timer]
 OnCalendar=*-*-* 03:14:00

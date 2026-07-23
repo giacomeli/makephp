@@ -1,32 +1,25 @@
-# SO / editores
 .vscode
 .DS_Store
 
-# Configuracao local (nunca versionar)
 .env
 compose.apps.yml
 
-# Planejamento e instrucoes locais
 specs
 CLAUDE.md
 agents.md
 audit.md
 
-# Logs dos containers
 logs/
 
-# Nginx: vhosts sao gerados (ou hand-tuned de producao) — nunca versionados
 nginx/conf.d/*
 !nginx/conf.d/.gitkeep
 nginx/sites-dev
 nginx/sites-available/*.conf
 nginx/sites-available/*.bak*
 
-# MariaDB: scripts de init locais (apenas .example e .gitkeep versionados)
 mariadb/createdb.sql
 mariadb/docker-entrypoint-initdb.d/*
 !mariadb/docker-entrypoint-initdb.d/.gitkeep
 !mariadb/docker-entrypoint-initdb.d/createdb.sql.example
 
-# Backups in-place
 *.bak*

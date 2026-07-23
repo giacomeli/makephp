@@ -3,11 +3,11 @@
 /**
  * makephp demo-app
  *
- * Pagina de status usada pelo make smoke para validar a stack de ponta a
- * ponta: PHP rodando (proxy ou php-fpm), extensoes carregadas e, quando as
- * envs estao presentes, conectividade com MariaDB e Redis.
+ * Status page used by make smoke to validate the stack end to end: PHP
+ * running (proxy or php-fpm mode), loaded extensions and — when the envs are
+ * present — connectivity to MariaDB and Redis.
  *
- * Sem dependencias de Composer de proposito: o exemplo valida infraestrutura.
+ * No Composer dependencies on purpose: this example validates infrastructure.
  */
 
 declare(strict_types=1);
@@ -75,7 +75,7 @@ if (($_GET['format'] ?? '') === 'json') {
 header('Content-Type: text/html; charset=utf-8');
 ?>
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="en">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -92,17 +92,17 @@ header('Content-Type: text/html; charset=utf-8');
     <h1>makephp demo-app</h1>
     <p>PHP <?= htmlspecialchars(PHP_VERSION) ?> via <?= htmlspecialchars(PHP_SAPI) ?></p>
     <table>
-        <tr><th>Extensao</th><th>Status</th></tr>
+        <tr><th>Extension</th><th>Status</th></tr>
         <?php foreach ($extensions as $name => $loaded): ?>
         <tr>
             <td><?= htmlspecialchars($name) ?></td>
-            <td class="<?= $loaded ? 'ok' : 'fail' ?>"><?= $loaded ? 'carregada' : 'ausente' ?></td>
+            <td class="<?= $loaded ? 'ok' : 'fail' ?>"><?= $loaded ? 'loaded' : 'missing' ?></td>
         </tr>
         <?php endforeach; ?>
     </table>
     <?php if ($services !== []): ?>
     <table>
-        <tr><th>Servico</th><th>Status</th></tr>
+        <tr><th>Service</th><th>Status</th></tr>
         <?php foreach ($services as $svc): ?>
         <tr>
             <td><?= htmlspecialchars($svc['service']) ?></td>
@@ -111,6 +111,6 @@ header('Content-Type: text/html; charset=utf-8');
         <?php endforeach; ?>
     </table>
     <?php endif; ?>
-    <p><a href="?format=json">ver como JSON</a></p>
+    <p><a href="?format=json">view as JSON</a></p>
 </body>
 </html>

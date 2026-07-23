@@ -2,7 +2,7 @@
   __APP__:
     build:
       context: ${__APP_VAR___PROJECT_PATH}
-      # dockerfile e sempre resolvido relativo ao context
+      # dockerfile is always resolved relative to the context
       dockerfile: ${APP_CONTAINER_CFG_DIR}/Dockerfile
       args:
         BASE_IMAGE: ${PHP_CONTAINER_NAME}:${PHP_IMAGE_TAG}

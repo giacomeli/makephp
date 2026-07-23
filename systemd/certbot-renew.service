@@ -1,11 +1,11 @@
 [Unit]
-Description=Renova certificados Let's Encrypt (certbot em Docker) e recarrega nginx
+Description=Renew Let's Encrypt certificates (certbot in Docker) and reload nginx
 After=docker.service network-online.target
 Requires=docker.service
 
 [Service]
 Type=oneshot
-# Ajuste User e os dois paths abaixo para o seu host antes de instalar
+# Adjust User and the three paths below for your host before installing
 User=debian
 Environment=PHPDOCKER_DIR=/home/debian/Projects/phpdocker
 WorkingDirectory=/home/debian/Projects/phpdocker

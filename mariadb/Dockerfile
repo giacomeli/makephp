@@ -1,19 +1,19 @@
-# 12.2: mesma serie que inicializou o volume de dados existente (downgrade nao sobe)
+# 12.2: same series that initialized the existing data volume (a downgrade will not boot)
 FROM mariadb:12.2
 
-# Timezone configurável no build (TZ do .env é repassada pelo compose)
+# Timezone configurable at build time (TZ from .env is forwarded by compose)
 ARG TZ=UTC
 ENV TZ=${TZ}
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
-# Configuração personalizada (tuning de InnoDB, conexões e slow log)
+# Custom configuration (InnoDB tuning, connections and slow log)
 COPY my.cnf /etc/mysql/conf.d/my.cnf
 
-# Permissões: 644 apenas nos arquivos (o diretório precisa manter o bit x)
+# Permissions: 644 on files only (the directory needs to keep its x bit)
 RUN find /etc/mysql/conf.d/ -type f -exec chmod 644 {} +
 
-# Scripts de inicialização entram por bind mount em /docker-entrypoint-initdb.d
-# (ver docker-compose.yml) — nada de dados no build da imagem.
+# Init scripts come in through a bind mount at /docker-entrypoint-initdb.d
+# (see docker-compose.yml) — no data baked into the image.
 
 CMD ["mariadbd"]
 

@@ -1,33 +1,33 @@
 # demo-app
 
-Aplicacao PHP minima (sem framework) usada para validar a stack do makephp e
-servir de modelo estrutural para registrar aplicacoes reais.
+Minimal PHP application (no framework) used to validate the makephp stack and
+to serve as the structural template for registering real applications.
 
-O mesmo codigo demonstra os tres modos de integracao com o nginx:
+The same code demonstrates the three nginx integration modes:
 
-| Modo | Como | O que valida |
+| Mode | How | What it validates |
 | --- | --- | --- |
-| `proxy` | Container proprio rodando `php -S` via supervisord | register-app, build-app, proxy reverso |
-| `php` | Servido pelo php-fpm compartilhado | FastCGI, geracao de vhost com root correto |
-| `html` | `public/index.html` estatico | Serving de estaticos |
+| `proxy` | Own container running `php -S` under supervisord | register-app, build-app, reverse proxy |
+| `php` | Served by the shared php-fpm | FastCGI, vhost generation with the right root |
+| `html` | Static `public/index.html` | Static file serving |
 
-## Como rodar
+## Running it
 
 ```bash
-# O bloco DEMO_APP_* ja vem no .env.example. Na raiz do repositorio:
+# The DEMO_APP_* block ships in .env.example. From the repository root:
 make register-app demo-app
 make build-app demo-app
 make up demo-app
 curl --resolve demo-app.test:8099:127.0.0.1 "http://demo-app.test:8099/?format=json"
 ```
 
-Ou rode a validacao completa dos tres modos com `make smoke`.
+Or run the full three-mode validation with `make smoke`.
 
-## Estrutura
+## Layout
 
-- `public/index.php` — pagina de status: versao do PHP, extensoes carregadas e
-  (quando as envs `DB_HOST`/`REDIS_HOST` existem) conectividade com MariaDB e
-  Redis. `?format=json` retorna JSON (usado pelo smoke test).
-- `container_config/` — o contrato que toda aplicacao registrada precisa ter:
-  `Dockerfile` (parte da imagem base do makephp), `entrypoint.sh` e
-  `supervisord.conf` (processos do app).
+- `public/index.php` — status page: PHP version, loaded extensions and (when
+  the `DB_HOST`/`REDIS_HOST` envs exist) MariaDB and Redis connectivity.
+  `?format=json` returns JSON (used by the smoke test).
+- `container_config/` — the contract every registered application needs:
+  `Dockerfile` (based on the makephp base image), `entrypoint.sh` and
+  `supervisord.conf` (the app processes).

@@ -1,21 +1,21 @@
 --
--- Copie este arquivo para createdb.sql (mesma pasta) e descomente/ajuste os
--- blocos abaixo para criar bancos adicionais e conceder acesso ao usuario
--- definido em MARIADB_USER no .env.
+-- Copy this file to createdb.sql (same folder) and uncomment/adjust the
+-- blocks below to create additional databases and grant access to the user
+-- defined as MARIADB_USER in .env.
 --
--- Os scripts desta pasta rodam automaticamente APENAS na primeira
--- inicializacao do volume de dados. Com o volume ja criado, execute manualmente:
+-- Scripts in this folder run automatically ONLY on the first initialization
+-- of the data volume. With an existing volume, run manually:
 --
 --     docker compose exec mariadb sh -c 'mariadb -uroot -p"$MYSQL_ROOT_PASSWORD" < /docker-entrypoint-initdb.d/createdb.sql'
 --
--- O banco e o usuario principais (MARIADB_DATABASE / MARIADB_USER) ja sao
--- criados pelo entrypoint oficial da imagem — aqui entram apenas extras.
+-- The primary database and user (MARIADB_DATABASE / MARIADB_USER) are
+-- already created by the official image entrypoint — only extras go here.
 --
 
 -- CREATE DATABASE IF NOT EXISTS `app_db_1` COLLATE 'utf8mb4_general_ci';
--- GRANT ALL ON `app_db_1`.* TO 'seu_usuario'@'%';
+-- GRANT ALL ON `app_db_1`.* TO 'your_user'@'%';
 
 -- CREATE DATABASE IF NOT EXISTS `app_db_2` COLLATE 'utf8mb4_general_ci';
--- GRANT ALL ON `app_db_2`.* TO 'seu_usuario'@'%';
+-- GRANT ALL ON `app_db_2`.* TO 'your_user'@'%';
 
 FLUSH PRIVILEGES;

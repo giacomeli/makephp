@@ -1,24 +1,26 @@
 # makephp
 
-Ambiente Docker completo para aplicações PHP, orquestrado por Makefile. Um único repositório provê a infraestrutura compartilhada — Nginx, PHP-FPM, MariaDB, Redis, RabbitMQ, TimescaleDB, MongoDB e Certbot — enquanto cada aplicação vive no seu próprio repositório e é plugada por convenção de variáveis no `.env`. Serve tanto o desenvolvimento local (macOS/Linux) quanto um host de produção single-node com HTTPS automatizado.
+A complete, Makefile-driven Docker environment for PHP applications. A single repository provides the shared infrastructure — Nginx, PHP-FPM, MariaDB, Redis, RabbitMQ, TimescaleDB, MongoDB and Certbot — while each application lives in its own repository and plugs in through a `.env` variable convention. It serves both local development (macOS/Linux) and a single-node production host with automated HTTPS.
 
-## Recursos
+Documentation: **English** (below and in [`docs/`](./docs/)) | **Português** ([`docs/pt-br/`](./docs/pt-br/readme.md))
 
-- Imagem PHP 8.3-FPM em dois sabores: **dev** (extensões + zsh/Oh My Zsh, tmux, node, python, supervisor, Xdebug opcional) e **prod** (runtime enxuto com as mesmas extensões, sem toolchain) — publicadas em [hub.docker.com/u/giacomeli](https://hub.docker.com/u/giacomeli) com suporte a amd64 e arm64.
-- Registro de aplicações sem tocar no compose: `make register-app` gera o serviço a partir do `.env`.
-- Geração de vhosts Nginx a partir de templates: PHP/Laravel, proxy reverso (websockets/Reverb), estáticos e WordPress, com variantes HTTPS — validados com `nginx -t` antes de recarregar.
-- Certificados Let's Encrypt via Certbot em container (webroot) com renovação automática por systemd timer.
-- Nginx endurecido: TLS 1.2/1.3, security headers, cache FastCGI com bypass de sessão, catch-all que rejeita hosts e SNI desconhecidos.
-- Infraestrutura exposta apenas em loopback; somente o Nginx (80/443) publica para fora. Healthchecks em todos os serviços.
-- Projeto de exemplo incluído (`examples/demo-app`) e smoke test de ponta a ponta (`make smoke`).
+## Features
 
-## Arquitetura
+- PHP 8.3-FPM image in two flavors: **dev** (all extensions + zsh/Oh My Zsh, tmux, node, python, supervisor, optional Xdebug) and **prod** (slim runtime with the same extensions, no toolchain) — published at [hub.docker.com/u/giacomeli](https://hub.docker.com/u/giacomeli) for amd64 and arm64.
+- App registration without touching compose: `make register-app` generates the service from `.env`.
+- Nginx vhost generation from templates: PHP/Laravel, reverse proxy (websockets/Reverb), static and WordPress, with HTTPS variants — validated with `nginx -t` before every reload.
+- Let's Encrypt certificates via containerized Certbot (webroot) with automatic renewal through a systemd timer.
+- Hardened Nginx: TLS 1.2/1.3, security headers, FastCGI cache with session bypass, catch-all rejecting unknown hosts and SNI.
+- Infrastructure exposed on loopback only; just Nginx (80/443) publishes externally. Healthchecks on every service.
+- Bundled example project (`examples/demo-app`) and an end-to-end smoke test (`make smoke`).
+
+## Architecture
 
 ```mermaid
 %%{init: {'theme':'base','themeVariables':{'primaryColor':'#E3F2FD','primaryTextColor':'#0D47A1','primaryBorderColor':'#1976D2','lineColor':'#546E7A'}}}%%
 flowchart LR
-    accTitle: Visao geral do makephp
-    accDescr: O nginx recebe todo o trafego e encaminha para o php-fpm via FastCGI ou para containers de apps via proxy; todos os servicos compartilham uma rede Docker externa.
+    accTitle: makephp overview
+    accDescr: nginx receives all traffic and forwards it to php-fpm over FastCGI or to app containers via proxy; every service shares an external Docker network.
 
     classDef edge fill:#E3F2FD,stroke:#1976D2
     classDef app fill:#FFF3E0,stroke:#EF6C00
@@ -26,107 +28,107 @@ flowchart LR
 
     C["Browser"]:::edge -- "80 / 443" --> N["nginx"]:::edge
     N -- "FastCGI" --> F["php-fpm"]:::app
-    N -- "proxy" --> A["apps<br>(repos externos)"]:::app
+    N -- "proxy" --> A["apps<br>(external repos)"]:::app
     F --> I[("MariaDB / Redis / RabbitMQ<br>TimescaleDB / MongoDB")]:::infra
     A --> I
 ```
 
-Documentação detalhada em [`docs/`](./docs/):
+Detailed documentation in [`docs/`](./docs/):
 
-| Documento | Conteúdo |
+| Document | Contents |
 | --- | --- |
-| [docs/arquitetura.md](./docs/arquitetura.md) | Topologia, serviços, portas, imagem PHP multi-stage (dev e prod) |
-| [docs/apps.md](./docs/apps.md) | Como registrar e operar aplicações |
-| [docs/nginx-ssl.md](./docs/nginx-ssl.md) | Sistema de templates Nginx e ciclo de certificados |
-| [docs/comandos.md](./docs/comandos.md) | Referência completa do Makefile e sintaxes de argumento |
-| [docs/producao.md](./docs/producao.md) | Deploy, renovação automática de certs e hardening |
+| [docs/architecture.md](./docs/architecture.md) | Topology, services, ports, multi-stage PHP image (dev and prod) |
+| [docs/apps.md](./docs/apps.md) | How to register and operate applications |
+| [docs/nginx-ssl.md](./docs/nginx-ssl.md) | Nginx template system and certificate lifecycle |
+| [docs/commands.md](./docs/commands.md) | Full Makefile reference and argument syntaxes |
+| [docs/production.md](./docs/production.md) | Deployment, automatic cert renewal and hardening |
 
-## Requisitos
+## Requirements
 
-- Docker Engine + Docker Compose v2 (buildx incluso)
+- Docker Engine + Docker Compose v2 (buildx included)
 - GNU Make
-- macOS ou Linux (o Makefile trata a diferença de `sed` automaticamente)
+- macOS or Linux (the Makefile handles the `sed` differences automatically)
 
-## Começando
+## Getting started
 
 ```bash
 git clone https://github.com/giacomeli/makephp && cd makephp
-make init          # cria .env, rede Docker, pastas de log e compose.apps.yml
-# edite o .env: LOCAL_DIR e senhas (os "changeme" DEVEM ser trocados)
-make build         # imagem PHP base dev (demora na primeira vez)
-make up            # sobe nginx, php-fpm, mariadb, redis, rabbitmq, timescaledb
-make ps            # confere o estado (healthchecks)
+make init          # creates .env, Docker network, log dirs and compose.apps.yml
+# edit .env: LOCAL_DIR and passwords (every "changeme" MUST be replaced)
+make build         # dev PHP base image (slow on the first run)
+make up            # starts nginx, php-fpm, mariadb, redis, rabbitmq, timescaledb
+make ps            # check status (healthchecks)
 ```
 
-O MongoDB não sobe por padrão — `make up mongodb` quando precisar.
+MongoDB does not start by default — `make up mongodb` when you need it.
 
-Validação completa da stack com o app de exemplo:
+Full stack validation with the example app:
 
 ```bash
 make smoke
 ```
 
-## Imagens no DockerHub
+## DockerHub images
 
-| Imagem | Conteúdo | Uso |
+| Image | Contents | Use |
 | --- | --- | --- |
-| `giacomeli/makephp:8.3-dev` | Extensões completas + ferramentas de desenvolvimento | Base para containers de app em dev |
-| `giacomeli/makephp:8.3-prod` | Mesmas extensões, runtime enxuto | Base para imagens de produção |
+| `giacomeli/makephp:8.3-dev` | All extensions + development tooling | Base for app containers in dev |
+| `giacomeli/makephp:8.3-prod` | Same extensions, slim runtime | Base for production images |
 
 ```dockerfile
-# Dockerfile de um app (ex.: container_config/Dockerfile)
+# An app Dockerfile (e.g. container_config/Dockerfile)
 ARG BASE_IMAGE=giacomeli/makephp:8.3-dev
 FROM ${BASE_IMAGE}
 ```
 
-Tags datadas (`8.3-dev-YYYYMMDD`) permitem pinar uma versão exata. Publicação: `make push-php` (multi-arch via buildx).
+Dated tags (`8.3-dev-YYYYMMDD`) allow pinning an exact build. Publishing: `make push-php` (multi-arch via buildx).
 
-## Registrando uma aplicação
+## Registering an application
 
-1. No repositório **do app**: pasta `container_config/` com `Dockerfile`, `entrypoint.sh` e `supervisord.conf` (modelo em [`examples/demo-app/`](./examples/demo-app/)).
-1. No `.env` **deste repositório**: bloco de variáveis do app.
+1. In the **app's** repository: a `container_config/` folder with `Dockerfile`, `entrypoint.sh` and `supervisord.conf` (template in [`examples/demo-app/`](./examples/demo-app/)).
+1. In **this** repository's `.env`: the app variable block.
 
     ```dotenv
-    MEUAPP_NGINX_MODE=proxy        # php | proxy | html | none
-    MEUAPP_CONTAINER_NAME=meuapp
-    MEUAPP_PROJECT_PATH=/caminho/absoluto/para/meuapp
-    MEUAPP_DOCKER_PATH=/var/www
-    MEUAPP_ALIASES="meuapp.test"
-    MEUAPP_PORT=8000
+    MYAPP_NGINX_MODE=proxy         # php | proxy | html | none
+    MYAPP_CONTAINER_NAME=myapp
+    MYAPP_PROJECT_PATH=/absolute/path/to/myapp
+    MYAPP_DOCKER_PATH=/var/www
+    MYAPP_ALIASES="myapp.test"
+    MYAPP_PORT=8000
     ```
 
-1. Registrar e subir:
+1. Register and start:
 
     ```bash
-    make register-app meuapp       # gera o servico no compose.apps.yml
-    make build-app meuapp          # build + vhost nginx + reload validado
-    make up meuapp
-    sudo make hosts-add-meuapp     # aliases no /etc/hosts
+    make register-app myapp        # generates the service in compose.apps.yml
+    make build-app myapp           # build + nginx vhost + validated reload
+    make up myapp
+    sudo make hosts-add-myapp      # aliases in /etc/hosts
     ```
 
-Guia completo (modos, root do vhost, como os apps enxergam a infra) em [docs/apps.md](./docs/apps.md).
+Complete guide (modes, vhost root, how apps see the infrastructure) in [docs/apps.md](./docs/apps.md).
 
-## Comandos essenciais
+## Essential commands
 
-| Comando | Ação |
+| Command | Action |
 | --- | --- |
-| `make init` | Onboarding: .env, rede, logs, compose.apps.yml |
-| `make up` / `make down` | Sobe / para a infraestrutura (down preserva os vhosts) |
-| `make register-app <app>` / `make build-app <app>` | Registra e builda um app |
-| `make shell-<container>` | Shell zsh dentro do container |
+| `make init` | Onboarding: .env, network, logs, compose.apps.yml |
+| `make up` / `make down` | Start / stop the infrastructure (down preserves vhosts) |
+| `make register-app <app>` / `make build-app <app>` | Register and build an app |
+| `make shell-<container>` | zsh shell inside the container |
 | `make artisan-<container>` / `make composer-<container>` | Laravel artisan / Composer |
-| `make nginx-list` | Inventário de sites e status SSL |
-| `make cert-gen domain=exemplo.com` | Emite certificado Let's Encrypt |
-| `make enable-ssl name=site` | Migra um vhost para HTTPS |
-| `make smoke` | Valida a stack de ponta a ponta |
-| `make clean-confs` | Remove apenas vhosts gerados (preserva os manuais) |
+| `make nginx-list` | Site inventory and SSL status |
+| `make cert-gen domain=example.com` | Issue a Let's Encrypt certificate |
+| `make enable-ssl name=site` | Move a vhost to HTTPS |
+| `make smoke` | Validate the stack end to end |
+| `make clean-confs` | Remove only generated vhosts (preserves manual ones) |
 
-Alvos por app usam **sufixo com hífen** (`make shell-meuapp`); `build-app`, `up`, `register-app` e `unregister-app` aceitam o nome como argumento posicional. Referência completa em [docs/comandos.md](./docs/comandos.md).
+Per-app targets use a **dash suffix** (`make shell-myapp`); `build-app`, `up`, `register-app` and `unregister-app` take the name as a positional argument. Full reference in [docs/commands.md](./docs/commands.md).
 
-## Produção
+## Production
 
-O mesmo repositório opera um host de produção: `.env` com `NGINX_PORT_HTTP=80` e senhas reais, certificados via `make cert-gen` + `make enable-ssl`, renovação automática com os units de `systemd/`, e imagem `8.3-prod` como base dos apps. Checklist de hardening e notas de migração em [docs/producao.md](./docs/producao.md).
+The same repository runs a production host: `.env` with `NGINX_PORT_HTTP=80` and real passwords, certificates via `make cert-gen` + `make enable-ssl`, automatic renewal with the `systemd/` units, and the `8.3-prod` image as the app base. Hardening checklist and migration notes in [docs/production.md](./docs/production.md).
 
-## Licença
+## License
 
 [MIT](./LICENSE)

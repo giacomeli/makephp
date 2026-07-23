@@ -1,5 +1,5 @@
-# Imagem do demo-app: parte da imagem base do makephp.
-# Local: builde a base antes (make build) e tagueie, ou use a publicada.
+# demo-app image: based on the makephp base image.
+# Locally: build the base first (make build), or use the published one.
 ARG BASE_IMAGE=giacomeli/makephp:8.3-dev
 FROM ${BASE_IMAGE}
 

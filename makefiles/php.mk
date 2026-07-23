@@ -1,4 +1,4 @@
-# === Build da imagem PHP ===
+# === PHP image build ===
 DATE_TAG := $(shell date +%Y%m%d)
 MAKEPHP_IMAGE ?= $(DOCKERHUB_USER)/makephp
 BUILD_PLATFORMS ?= linux/amd64,linux/arm64
@@ -15,18 +15,18 @@ build-prod: check-env
 		--target prod -t $(PHP_CONTAINER_NAME):8.3-prod -f ./php/Dockerfile ./php
 
 rebuild-php:
-	@echo "Rebuild do servico php-fpm sem cache..."
+	@echo "Rebuilding the php-fpm service without cache..."
 	@docker compose build --no-cache php-fpm
 
-# === Publicacao no DockerHub (multi-arch) ===
-# Requer docker login previo na conta $(DOCKERHUB_USER).
+# === DockerHub publishing (multi-arch) ===
+# Requires a prior docker login to the $(DOCKERHUB_USER) account.
 push-php: check-env
 	@if [ -z "$(DOCKERHUB_USER)" ]; then \
-		echo "Erro: DOCKERHUB_USER nao definido no .env"; exit 1; \
+		echo "Error: DOCKERHUB_USER is not set in .env"; exit 1; \
 	fi
 	@docker buildx inspect makephp-builder >/dev/null 2>&1 || \
 		docker buildx create --name makephp-builder >/dev/null
-	@echo "Publicando $(MAKEPHP_IMAGE):8.3-dev e :8.3-prod ($(BUILD_PLATFORMS))..."
+	@echo "Publishing $(MAKEPHP_IMAGE):8.3-dev and :8.3-prod ($(BUILD_PLATFORMS))..."
 	docker buildx build --builder makephp-builder --platform $(BUILD_PLATFORMS) \
 		--build-arg PHP_ENABLE_SWOOLE=$(PHP_ENABLE_SWOOLE) \
 		--target final \
@@ -37,29 +37,29 @@ push-php: check-env
 		--target prod \
 		-t $(MAKEPHP_IMAGE):8.3-prod -t $(MAKEPHP_IMAGE):8.3-prod-$(DATE_TAG) \
 		--push ./php
-	@echo "Publicado. Confira: docker buildx imagetools inspect $(MAKEPHP_IMAGE):8.3-dev"
+	@echo "Published. Verify with: docker buildx imagetools inspect $(MAKEPHP_IMAGE):8.3-dev"
 
-# === Helpers por container (sufixo = nome do container) ===
+# === Per-container helpers (suffix = container name) ===
 shell:
-	@echo "Erro: informe o container com sufixo. Exemplo: make shell-demo-app"; exit 1
+	@echo "Error: use the suffixed form. Example: make shell-demo-app"; exit 1
 
 shell-%:
 	@docker exec -it $* zsh
 
 artisan:
-	@echo "Erro: informe o container com sufixo. Exemplo: make artisan-demo-app"; exit 1
+	@echo "Error: use the suffixed form. Example: make artisan-demo-app"; exit 1
 
 artisan-%:
 	@docker exec -it $* php artisan
 
 composer:
-	@echo "Erro: informe o container com sufixo. Exemplo: make composer-demo-app"; exit 1
+	@echo "Error: use the suffixed form. Example: make composer-demo-app"; exit 1
 
 composer-%:
 	@docker exec -it $* composer
 
 queue:
-	@echo "Erro: informe o container com sufixo. Exemplo: make queue-demo-app"; exit 1
+	@echo "Error: use the suffixed form. Example: make queue-demo-app"; exit 1
 
 queue-%:
 	@docker exec -it $* php artisan queue:work

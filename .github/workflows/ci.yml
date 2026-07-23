@@ -7,12 +7,12 @@ on:
 
 jobs:
   validate:
-    name: compose e nginx
+    name: compose and nginx
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Prepara ambiente de CI
+      - name: Prepare CI environment
         run: |
           cp .env.example .env
           sed -i 's#^LOCAL_DIR=.*#LOCAL_DIR=/tmp/projects#' .env
@@ -20,10 +20,10 @@ jobs:
           printf 'services: {}\n' > compose.apps.yml
           docker network create phpdocker-network
 
-      - name: Valida docker compose config
+      - name: Validate docker compose config
         run: docker compose config -q
 
-      - name: Gera vhosts de todos os modos e valida com nginx -t
+      - name: Generate vhosts for every mode and validate with nginx -t
         run: |
           make nginx-conf template=php name=ci-php domain=ci-php.test root=/var/www/ci/public
           make nginx-conf template=proxy name=ci-proxy domain=ci-proxy.test port=8000
@@ -36,11 +36,11 @@ jobs:
             -v "$PWD/nginx/includes:/etc/nginx/includes:ro" \
             nginx:1.29-alpine nginx -t
           if grep -R '__[A-Z_]*__' nginx/conf.d/; then
-            echo "Placeholders nao resolvidos"; exit 1
+            echo "Unresolved placeholders"; exit 1
           fi
 
   lint:
-    name: hadolint e shellcheck
+    name: hadolint and shellcheck
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -68,10 +68,10 @@ jobs:
           shellcheck scripts/*.sh examples/demo-app/container_config/entrypoint.sh
 
   build-prod:
-    name: build imagem prod
+    name: build prod image
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Build do target prod (sem push)
+      - name: Build the prod target (no push)
         run: docker build --target prod ./php
