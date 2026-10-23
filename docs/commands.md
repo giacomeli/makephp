@@ -23,7 +23,7 @@ The bare forms of the suffixed targets (`make shell demo-app`) are stubs that ex
 | `make init` | Creates `.env` (from the example), the `phpdocker-network` network, `logs/` and the `compose.apps.yml` stub — idempotent |
 | `make build` | **Dev** PHP base image (`--target final`); the PHP version is derived from `PHP_IMAGE_TAG` (override with `PHP_VERSION=8.x`); honors `PHP_ENABLE_SWOOLE` and `PHP_ENABLE_XDEBUG`; `NO_CACHE=1` skips cache |
 | `make build-prod` | Slim **prod** PHP image (`--target prod`), tagged `<name>:<version>-prod` |
-| `make rebuild-php` | `docker compose build --no-cache php-fpm` |
+| `make rebuild-php` | `docker compose build --no-cache --pull php-fpm` |
 
 ## Lifecycle
 

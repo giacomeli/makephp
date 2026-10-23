@@ -49,6 +49,7 @@ jobs:
             --target final \
             --cache-from type=gha,scope=${{ matrix.version }}-${{ matrix.arch.suffix }} \
             --cache-to type=gha,mode=max,scope=${{ matrix.version }}-${{ matrix.arch.suffix }} \
+            --label "io.makephp.build-run=${{ github.run_id }}" \
             -t "$IMAGE:${{ matrix.version }}-dev-${{ matrix.arch.suffix }}" \
             --push ./php
 
@@ -59,6 +60,7 @@ jobs:
             --build-arg PHP_ENABLE_SWOOLE=true \
             --target prod \
             --cache-from type=gha,scope=${{ matrix.version }}-${{ matrix.arch.suffix }} \
+            --label "io.makephp.build-run=${{ github.run_id }}" \
             -t "$IMAGE:${{ matrix.version }}-prod-${{ matrix.arch.suffix }}" \
             --push ./php
 
@@ -81,11 +83,18 @@ jobs:
 
       - name: Create multi-arch manifests (versioned + dated)
         run: |
-          for suffix in amd64 arm64; do
-            if ! docker buildx imagetools inspect "$IMAGE:${{ matrix.version }}-dev-$suffix" >/dev/null 2>&1; then
-              echo "Per-arch tag ${{ matrix.version }}-dev-$suffix missing (build failed) — nothing to merge."
-              exit 1
-            fi
+          # Per-arch tags from a previous run still exist on the registry, so
+          # presence alone is not enough: each must carry this run's id, or a
+          # failed build would re-merge stale (possibly vulnerable) images.
+          for flavor in dev prod; do
+            for suffix in amd64 arm64; do
+              run=$(docker buildx imagetools inspect "$IMAGE:${{ matrix.version }}-$flavor-$suffix" \
+                --format '{{ index .Image.Config.Labels "io.makephp.build-run" }}' 2>/dev/null || true)
+              if [ "$run" != "${{ github.run_id }}" ]; then
+                echo "Per-arch tag ${{ matrix.version }}-$flavor-$suffix not built by this run (build failed) — nothing to merge."
+                exit 1
+              fi
+            done
           done
           DATE=$(date +%Y%m%d)
           for flavor in dev prod; do

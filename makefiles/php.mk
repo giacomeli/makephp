@@ -28,7 +28,7 @@ build-prod: check-env
 
 rebuild-php:
 	@echo "Rebuilding the php-fpm service without cache..."
-	@docker compose build --no-cache --build-arg PHP_VERSION=$(PHP_VERSION) php-fpm
+	@docker compose build --no-cache --pull --build-arg PHP_VERSION=$(PHP_VERSION) php-fpm
 
 # === DockerHub publishing (multi-arch) ===
 # Requires a prior docker login to the $(DOCKERHUB_USER) account.

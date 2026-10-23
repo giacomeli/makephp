@@ -23,7 +23,7 @@ As formas nuas dos alvos de sufixo (`make shell demo-app`) são stubs que explic
 | `make init` | Cria `.env` (do example), rede `phpdocker-network`, `logs/`, `compose.apps.yml` stub — idempotente |
 | `make build` | Imagem PHP base **dev** (`--target final`); a versão do PHP é derivada do `PHP_IMAGE_TAG` (override com `PHP_VERSION=8.x`); respeita `PHP_ENABLE_SWOOLE` e `PHP_ENABLE_XDEBUG`; `NO_CACHE=1` ignora cache |
 | `make build-prod` | Imagem PHP **prod** enxuta (`--target prod`), tag `<nome>:<versao>-prod` |
-| `make rebuild-php` | `docker compose build --no-cache php-fpm` |
+| `make rebuild-php` | `docker compose build --no-cache --pull php-fpm` |
 
 ## Ciclo de vida
 
